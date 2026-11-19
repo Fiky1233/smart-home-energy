@@ -1,6 +1,7 @@
 import base64
 import os
 import streamlit as st
+import streamlit.components.v1 as components
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -13,7 +14,7 @@ from sklearn.linear_model import LinearRegression
 st.set_page_config(
     page_title="Smart Home AI - Asisten Pantau Listrik Rumah",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 
@@ -23,10 +24,17 @@ def render_html(raw_html: str):
     st.markdown(clean_html, unsafe_allow_html=True)
 
 
-def render_sidebar_html(raw_html: str):
-    """Membersihkan spasi awal agar HTML dirender sempurna di panel kiri."""
-    clean_html = "\n".join(line.strip() for line in raw_html.splitlines() if line.strip())
-    st.sidebar.markdown(clean_html, unsafe_allow_html=True)
+def scroll_ke_atas():
+    """Menggulir layar otomatis ke bagian paling atas saat berpindah tampilan."""
+    components.html(
+        """
+        <script>
+            window.parent.scrollTo({top: 0, behavior: 'smooth'});
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
 
 
 def get_usm_logo_data_uri() -> str:
@@ -67,7 +75,7 @@ def get_usm_logo_data_uri() -> str:
 
 
 # ==========================================
-# GLOBAL CSS: MODERN GLASSMORPHISM & ONBOARDING UI
+# GLOBAL CSS: MOBILE-FIRST, MODE LIGHT & DARK
 # ==========================================
 render_html("""
 <style>
@@ -88,6 +96,13 @@ render_html("""
         color: #f8fafc;
     }
 
+    /* Sembunyikan sidebar sepenuhnya karena input langsung di halaman utama */
+    section[data-testid="stSidebar"],
+    button[data-testid="stSidebarCollapsedControl"],
+    [data-testid="collapsedControl"] {
+        display: none !important;
+    }
+
     /* Bilah atas Streamlit agar tidak putih menyilaukan saat Mode Light */
     header[data-testid="stHeader"] {
         background-color: rgba(7, 11, 20, 0.85) !important;
@@ -105,30 +120,16 @@ render_html("""
         padding-bottom: 2.2rem !important;
         padding-left: 1.6rem !important;
         padding-right: 1.6rem !important;
-        max-width: 1340px;
-    }
-
-    section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #090e1a 0%, #0f172a 100%) !important;
-        border-right: 1px solid rgba(56, 189, 248, 0.25);
-    }
-
-    [data-testid="stSidebarUserContent"] {
-        padding-top: 1.35rem !important;
+        max-width: 1220px;
     }
 
     /* Kontras Tinggi untuk Semua Teks & Label di Mode Light maupun Dark */
-    section[data-testid="stSidebar"] h1,
-    section[data-testid="stSidebar"] h2,
-    section[data-testid="stSidebar"] h3,
-    section[data-testid="stSidebar"] h4,
     .stApp h1, .stApp h2, .stApp h3, .stApp h4 {
         color: #f8fafc !important;
     }
 
     [data-testid="stWidgetLabel"] p,
     [data-testid="stWidgetLabel"] label,
-    section[data-testid="stSidebar"] label,
     .stApp label {
         color: #f1f5f9 !important;
         font-weight: 600 !important;
@@ -253,9 +254,9 @@ render_html("""
         flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
-        gap: 12px;
-        padding-top: 6px;
-        margin-bottom: 16px;
+        gap: 10px;
+        padding-top: 4px;
+        margin-bottom: 14px;
     }
     .main-app-title {
         font-size: 25px;
@@ -273,9 +274,9 @@ render_html("""
         background: rgba(15, 23, 42, 0.75);
         border: 1px solid rgba(56, 189, 248, 0.35);
         backdrop-filter: blur(10px);
-        padding: 6px 14px;
+        padding: 5px 13px;
         border-radius: 999px;
-        font-size: 12px;
+        font-size: 11.5px;
         font-weight: 700;
         color: #7dd3fc;
     }
@@ -292,97 +293,67 @@ render_html("""
         animation: dotPulse 1.6s ease-in-out infinite;
     }
 
-    /* Layar Awal Pengisian (Onboarding Wizard) */
-    .wizard-hero {
-        background: linear-gradient(135deg, rgba(15, 23, 42, 0.88) 0%, rgba(23, 37, 84, 0.72) 100%);
-        border: 1.5px solid rgba(56, 189, 248, 0.45);
-        border-radius: 20px;
-        padding: 26px 28px;
-        margin-bottom: 18px;
-        box-shadow: 0 12px 32px rgba(2, 132, 199, 0.16);
+    /* Banner Petunjuk Singkat di Atas Form Input */
+    .input-intro-banner {
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.14), rgba(37, 99, 235, 0.14));
+        border: 1px solid rgba(56, 189, 248, 0.4);
+        border-left: 4px solid #38bdf8;
+        border-radius: 14px;
+        padding: 13px 16px;
+        color: #e2e8f0;
+        font-size: 13.5px;
+        line-height: 1.5;
+        margin-bottom: 14px;
     }
-    .wizard-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(56, 189, 248, 0.16);
-        color: #38bdf8;
-        border: 1px solid rgba(56, 189, 248, 0.45);
-        padding: 4px 14px;
-        border-radius: 999px;
-        font-size: 11.5px;
-        font-weight: 800;
-        letter-spacing: 0.4px;
+
+    /* Header Tiap Bagian Formulir Input */
+    .form-section-header {
+        background: linear-gradient(90deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.75));
+        border: 1px solid rgba(56, 189, 248, 0.35);
+        border-left: 5px solid #38bdf8;
+        border-radius: 12px;
+        padding: 12px 16px;
+        margin-top: 14px;
         margin-bottom: 12px;
     }
-    .wizard-title {
-        font-size: 23px;
-        font-weight: 800;
-        color: #ffffff;
-        line-height: 1.3;
-        margin-bottom: 8px;
-    }
-    .wizard-sub {
-        font-size: 14.5px;
-        color: #cbd5e1;
-        line-height: 1.6;
-    }
-    .step-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 14px;
-        margin-top: 18px;
-        margin-bottom: 18px;
-    }
-    .step-card {
-        background: rgba(15, 23, 42, 0.76);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(148, 163, 184, 0.22);
-        border-radius: 16px;
-        padding: 18px 20px;
-        transition: all 0.25s ease;
-    }
-    .step-card.done {
-        border-color: rgba(16, 185, 129, 0.65);
-        background: linear-gradient(145deg, rgba(15, 23, 42, 0.85), rgba(6, 78, 59, 0.25));
-    }
-    .step-num {
-        font-size: 11.5px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: #38bdf8;
-        margin-bottom: 6px;
-    }
-    .step-card.done .step-num {
-        color: #34d399;
-    }
-    .step-heading {
+    .form-section-title {
         font-size: 16px;
         font-weight: 800;
-        color: #f8fafc;
+        color: #38bdf8;
+        margin-bottom: 2px;
+    }
+    .form-section-sub {
+        font-size: 12.5px;
+        color: #cbd5e1;
+    }
+
+    /* Kartu Sub-Alat pada Form Input */
+    .device-box-label {
+        background: rgba(15, 23, 42, 0.78);
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        border-radius: 12px;
+        padding: 10px 14px;
+        margin-top: 8px;
         margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 6px;
     }
-    .step-desc {
-        font-size: 13px;
-        color: #94a3b8;
-        line-height: 1.5;
-        margin-bottom: 10px;
+    .device-box-name {
+        font-size: 14.5px;
+        font-weight: 800;
+        color: #f8fafc;
     }
-    .step-status {
-        display: inline-block;
+    .device-box-watt {
         font-size: 12px;
         font-weight: 700;
-        padding: 4px 10px;
-        border-radius: 8px;
-        background: rgba(30, 41, 59, 0.9);
-        color: #fbbf24;
-        border: 1px solid rgba(251, 191, 36, 0.35);
-    }
-    .step-card.done .step-status {
-        background: rgba(16, 185, 129, 0.18);
-        color: #6ee7b7;
-        border-color: rgba(16, 185, 129, 0.45);
+        color: #38bdf8;
+        background: rgba(56, 189, 248, 0.12);
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        padding: 2px 9px;
+        border-radius: 999px;
     }
 
     /* Kartu KPI Glassmorphism */
@@ -619,7 +590,7 @@ render_html("""
             padding-right: 0.9rem !important;
         }
         .main-app-title {
-            font-size: 20px;
+            font-size: 19.5px;
             line-height: 1.35;
         }
         .kpi-grid {
@@ -684,6 +655,8 @@ PERANGKAT_LAIN = {
 def inisialisasi_state_kosong():
     if "sudah_hitung" not in st.session_state:
         st.session_state["sudah_hitung"] = False
+    if "perlu_scroll_atas" not in st.session_state:
+        st.session_state["perlu_scroll_atas"] = False
 
     defaults = {
         "pilihan_golongan": PLACEHOLDER_PLN,
@@ -722,6 +695,7 @@ def inisialisasi_state_kosong():
 
 def reset_semua_isian():
     st.session_state["sudah_hitung"] = False
+    st.session_state["perlu_scroll_atas"] = True
     st.session_state["pilihan_golongan"] = PLACEHOLDER_PLN
     st.session_state["target_anggaran"] = 0
     st.session_state["pilihan_standby"] = list(OPSI_STANDBY_AWAM.keys())[0]
@@ -750,6 +724,10 @@ def reset_semua_isian():
 
 
 inisialisasi_state_kosong()
+
+if st.session_state["perlu_scroll_atas"]:
+    scroll_ke_atas()
+    st.session_state["perlu_scroll_atas"] = False
 
 
 # ==========================================
@@ -967,207 +945,6 @@ def render_animasi_dashboard(is_boros, indeks_wajar, total_kwh_hari, total_watt,
 
 
 # ==========================================
-# 3. PANEL KIRI (SIDEBAR): SEMUA INPUT DIMULAI KOSONG (0)
-# ==========================================
-render_sidebar_html("""
-<div style="background: linear-gradient(135deg, rgba(14,165,233,0.16), rgba(37,99,235,0.16)); border: 1px solid rgba(56,189,248,0.4); border-left: 4px solid #38bdf8; border-radius: 12px; padding: 13px 15px; color: #f8fafc; font-size: 13px; line-height: 1.5; margin-bottom: 12px;">
-    <div style="font-weight: 800; color: #38bdf8; margin-bottom: 4px; font-size: 13.5px;">📋 Mulai Isi dari Atas ke Bawah</div>
-    Semua kolom di bawah masih kosong (0). Silakan isi sesuai peralatan di rumah Anda, lalu klik tombol <b>Hitung</b> di paling bawah.
-</div>
-""")
-
-if st.sidebar.button("🔄 Kosongkan / Reset Semua Isian", use_container_width=True):
-    reset_semua_isian()
-    st.rerun()
-
-st.sidebar.divider()
-st.sidebar.header("1. Daya Listrik & Target Anggaran")
-
-opsi_pln_lengkap = [PLACEHOLDER_PLN] + list(GOLONGAN_PLN.keys())
-pilihan_golongan = st.sidebar.selectbox(
-    "Golongan Daya Listrik (PLN) *",
-    options=opsi_pln_lengkap,
-    key="pilihan_golongan"
-)
-
-golongan_sudah_dipilih = (pilihan_golongan != PLACEHOLDER_PLN)
-if golongan_sudah_dipilih:
-    batas_va = GOLONGAN_PLN[pilihan_golongan]["va"]
-    TARIF_PLN = GOLONGAN_PLN[pilihan_golongan]["tarif"]
-else:
-    batas_va = 900
-    TARIF_PLN = 0.0
-
-target_anggaran = st.sidebar.number_input(
-    "Target Maksimal Tagihan / Bulan (Rp)",
-    min_value=0,
-    max_value=50000000,
-    step=25000,
-    key="target_anggaran",
-    help="Opsional: Masukkan batas pengeluaran listrik bulanan yang Anda harapkan (biarkan 0 jika tidak ingin membatasi)."
-)
-
-pilihan_standby = st.sidebar.selectbox(
-    "Colokan Kecil yang Terus Nempel 24 Jam",
-    options=list(OPSI_STANDBY_AWAM.keys()),
-    key="pilihan_standby",
-    help="Pilih jika ada colokan Wi-Fi, charger HP yang tidak dicabut, atau STB TV yang terus menempel 24 jam."
-)
-watt_standby = OPSI_STANDBY_AWAM[pilihan_standby]
-st.sidebar.caption("Contoh: colokan Wi-Fi, charger HP, STB TV, dan lampu tidur yang nyala terus seharian.")
-
-st.sidebar.divider()
-st.sidebar.header("2. Peralatan Elektronik di Rumah")
-st.sidebar.caption("Isi jumlah unit dan geser lama pemakaian per hari untuk alat yang Anda miliki saja.")
-
-# --- INPUT KHUSUS KULKAS ---
-st.sidebar.markdown("**Kulkas (Lemari Es)**")
-pilihan_kulkas = st.sidebar.selectbox(
-    "Pilih Tipe Kulkas",
-    options=list(OPSI_KULKAS.keys()),
-    key="pilihan_kulkas",
-    label_visibility="collapsed"
-)
-watt_kulkas = OPSI_KULKAS[pilihan_kulkas]
-st.sidebar.caption(f"Daya dipilih: `{watt_kulkas} W/unit`")
-
-ck1, ck2 = st.sidebar.columns([1, 1.7])
-unit_kulkas = ck1.number_input("Unit Kulkas", min_value=0, max_value=5, step=1, key="unit_kulkas", label_visibility="collapsed")
-jam_kulkas_raw = ck2.slider("Jam Kulkas", min_value=0.0, max_value=24.0, step=0.5, key="jam_kulkas", disabled=(unit_kulkas == 0), label_visibility="collapsed")
-ck1.caption(f"{unit_kulkas} unit")
-ck2.caption(f"{jam_kulkas_raw:.1f} jam/hari" if unit_kulkas > 0 else "Kosong")
-jam_kulkas = jam_kulkas_raw if unit_kulkas > 0 else 0.0
-
-st.sidebar.divider()
-
-# --- INPUT KHUSUS AC ---
-st.sidebar.markdown("**Air Conditioner (AC)**")
-pilihan_ac = st.sidebar.selectbox(
-    "Pilih Kapasitas AC",
-    options=list(OPSI_AC.keys()),
-    key="pilihan_ac",
-    label_visibility="collapsed"
-)
-watt_ac = OPSI_AC[pilihan_ac]
-st.sidebar.caption(f"Daya dipilih: `{watt_ac} W/unit`")
-
-ca1, ca2 = st.sidebar.columns([1, 1.7])
-unit_ac = ca1.number_input("Unit AC", min_value=0, max_value=5, step=1, key="unit_ac", label_visibility="collapsed")
-jam_ac_raw = ca2.slider("Jam AC", min_value=0.0, max_value=24.0, step=0.5, key="jam_ac", disabled=(unit_ac == 0), label_visibility="collapsed")
-ca1.caption(f"{unit_ac} unit")
-ca2.caption(f"{jam_ac_raw:.1f} jam/hari" if unit_ac > 0 else "Kosong")
-jam_ac = jam_ac_raw if unit_ac > 0 else 0.0
-
-st.sidebar.divider()
-
-# --- INPUT MAGICOM ---
-st.sidebar.markdown(f"**Magicom (Penanak Nasi)** — `Masak {WATT_MAGICOM_COOK}W / Hangat {WATT_MAGICOM_WARM}W`")
-cm1, cm2 = st.sidebar.columns([1, 1.7])
-unit_magicom = cm1.number_input("Unit Magicom", min_value=0, max_value=5, step=1, key="unit_magicom", label_visibility="collapsed")
-masak_kali = cm2.slider("Frekuensi Masak/Hari", min_value=0, max_value=4, step=1, key="masak_magicom", disabled=(unit_magicom == 0), label_visibility="collapsed")
-cm1.caption(f"{unit_magicom} unit")
-cm2.caption(f"Masak: {masak_kali}x/hari ({masak_kali * JAM_PER_MASAK:.2f} jam)" if unit_magicom > 0 else "Kosong")
-
-warm_jam = st.sidebar.slider("Lama Mode Menghangatkan (Jam/Hari)", min_value=0.0, max_value=24.0, step=1.0, key="warm_magicom", disabled=(unit_magicom == 0))
-if unit_magicom > 0:
-    if warm_jam >= 23.0:
-        st.sidebar.caption("Status: Nyala 24 jam penuh (nasi belum habis sampai pagi)")
-    elif warm_jam == 0.0:
-        st.sidebar.caption("Status: Tidak memakai mode penghangat / langsung dicabut")
-    else:
-        st.sidebar.caption(f"Status: Menghangatkan {warm_jam:.0f} jam/hari")
-
-st.sidebar.divider()
-
-# --- INPUT MESIN CUCI ---
-st.sidebar.markdown(f"**Mesin Cuci** — `{WATT_MESIN_CUCI} W/unit`")
-cc1, cc2 = st.sidebar.columns([1, 1.7])
-unit_cuci = cc1.number_input("Unit Mesin Cuci", min_value=0, max_value=3, step=1, key="unit_cuci", label_visibility="collapsed")
-jam_cuci_minggu = cc2.slider("Total Jam Nyala / Minggu", min_value=0.0, max_value=21.0, step=0.5, key="jam_cuci_minggu", disabled=(unit_cuci == 0), label_visibility="collapsed")
-cc1.caption(f"{unit_cuci} unit")
-cc2.caption(f"{jam_cuci_minggu:.1f} jam/minggu (±{jam_cuci_minggu / 7.0:.2f} jam/hari)" if unit_cuci > 0 else "Kosong")
-
-st.sidebar.divider()
-
-# --- INPUT PERANGKAT HARIAN LAINNYA ---
-input_unit_lain = {}
-input_jam_lain = {}
-
-for idx, (nama, spec) in enumerate(PERANGKAT_LAIN.items()):
-    label_satuan = "W/lampu" if nama == "Lampu LED (Per Titik)" else "W/unit"
-    st.sidebar.markdown(f"**{nama}** — `{spec['watt']} {label_satuan}`")
-    c_unit, c_jam = st.sidebar.columns([1, 1.7])
-
-    unit_val = c_unit.number_input("Unit", min_value=0, max_value=spec["max_unit"], step=1, key=f"unit_{idx}", label_visibility="collapsed")
-    jam_val = c_jam.slider("Jam/Hari", min_value=0.0, max_value=24.0, step=0.5, key=f"jam_{idx}", disabled=(unit_val == 0), label_visibility="collapsed")
-
-    c_unit.caption(f"{unit_val} lampu" if nama == "Lampu LED (Per Titik)" else f"{unit_val} unit")
-    if unit_val == 0:
-        c_jam.caption("Kosong")
-    elif nama == "Sanyo (Pompa Air Otomatis)":
-        c_jam.caption(f"Otomatis: {jam_val:.1f} jam/hari")
-    else:
-        c_jam.caption(f"Nyala: {jam_val:.1f} jam/hari")
-
-    input_unit_lain[nama] = unit_val
-    input_jam_lain[nama] = jam_val if unit_val > 0 else 0.0
-
-st.sidebar.divider()
-
-# --- INPUT PERANGKAT TAMBAHAN KUSTOM (2 SLOT BEBAS, KOSONG DI AWAL) ---
-st.sidebar.header("3. Alat Tambahan Lainnya (Opsional)")
-st.sidebar.caption("Isi jika ada alat lain di rumah (Setrika, PC, Dispenser, dll). Biarkan kosong jika tidak ada.")
-
-raw_nama_c1 = st.sidebar.text_input("Nama Alat Tambahan 1", placeholder="Contoh: Setrika Listrik", key="nama_c1")
-nama_c1 = raw_nama_c1.strip() or "Alat Tambahan 1"
-cw1, cu1 = st.sidebar.columns(2)
-watt_c1 = cw1.number_input("Daya (Watt)", min_value=0, max_value=5000, step=5, key="watt_c1")
-unit_c1 = cu1.number_input("Jumlah Unit", min_value=0, max_value=10, step=1, key="unit_c1")
-jam_c1_raw = st.sidebar.slider("Lama Nyala Alat 1 (Jam/Hari)", min_value=0.0, max_value=24.0, step=0.5, disabled=(unit_c1 == 0 or watt_c1 == 0), key="jam_c1")
-jam_c1 = jam_c1_raw if (unit_c1 > 0 and watt_c1 > 0) else 0.0
-
-st.sidebar.markdown("---")
-
-raw_nama_c2 = st.sidebar.text_input("Nama Alat Tambahan 2", placeholder="Contoh: PC / Komputer", key="nama_c2")
-nama_c2 = raw_nama_c2.strip() or "Alat Tambahan 2"
-if nama_c2 == nama_c1:
-    nama_c2 = f"{nama_c2} (2)"
-cw2, cu2 = st.sidebar.columns(2)
-watt_c2 = cw2.number_input("Daya (Watt) ", min_value=0, max_value=5000, step=5, key="watt_c2")
-unit_c2 = cu2.number_input("Jumlah Unit ", min_value=0, max_value=10, step=1, key="unit_c2")
-jam_c2_raw = st.sidebar.slider("Lama Nyala Alat 2 (Jam/Hari)", min_value=0.0, max_value=24.0, step=0.5, disabled=(unit_c2 == 0 or watt_c2 == 0), key="jam_c2")
-jam_c2 = jam_c2_raw if (unit_c2 > 0 and watt_c2 > 0) else 0.0
-
-st.sidebar.divider()
-klik_hitung_sidebar = st.sidebar.button("🚀 Hitung & Lihat Hasil Perhitungan", type="primary", use_container_width=True)
-
-
-# ==========================================
-# HITUNG JUMLAH ALAT AKTIF YANG SUDAH DIISI PENGGUNA
-# ==========================================
-jumlah_jenis_alat_diisi = 0
-if unit_kulkas > 0 and jam_kulkas > 0:
-    jumlah_jenis_alat_diisi += 1
-if unit_ac > 0 and jam_ac > 0:
-    jumlah_jenis_alat_diisi += 1
-if unit_magicom > 0 and (masak_kali > 0 or warm_jam > 0):
-    jumlah_jenis_alat_diisi += 1
-if unit_cuci > 0 and jam_cuci_minggu > 0:
-    jumlah_jenis_alat_diisi += 1
-for nama_l in PERANGKAT_LAIN.keys():
-    if input_unit_lain[nama_l] > 0 and input_jam_lain[nama_l] > 0:
-        jumlah_jenis_alat_diisi += 1
-if unit_c1 > 0 and watt_c1 > 0 and jam_c1 > 0:
-    jumlah_jenis_alat_diisi += 1
-if unit_c2 > 0 and watt_c2 > 0 and jam_c2 > 0:
-    jumlah_jenis_alat_diisi += 1
-if watt_standby > 0:
-    jumlah_jenis_alat_diisi += 1
-
-data_siap_dihitung = golongan_sudah_dipilih and (jumlah_jenis_alat_diisi > 0)
-
-
-# ==========================================
 # HEADER UTAMA APLIKASI
 # ==========================================
 render_html(f"""
@@ -1175,90 +952,256 @@ render_html(f"""
     <div class="main-app-title">⚡ Smart Home AI: Asisten Pintar Pantau Listrik Rumah</div>
     <div class="live-pill">
         <span class="live-dot"></span>
-        {'MODE HASIL PERHITUNGAN' if st.session_state['sudah_hitung'] else 'LANGKAH PENGISIAN DATA'}
+        {'HASIL PERHITUNGAN' if st.session_state['sudah_hitung'] else 'FORMULIR PENGISIAN'}
     </div>
 </div>
 """)
 
 
 # ==========================================
-# TAMPILAN 1: PENGISIAN AWAL (JIKA BELUM DIHITUNG)
+# HALAMAN 1: FORMULIR PENGISIAN LANGSUNG DI HALAMAN UTAMA
 # ==========================================
-pesan_validasi = ""
-if klik_hitung_sidebar:
-    if not golongan_sudah_dipilih:
-        pesan_validasi = "⚠️ Silakan pilih **Golongan Daya Listrik (PLN)** terlebih dahulu pada **Bagian 1** di panel sebelah kiri."
-    elif jumlah_jenis_alat_diisi == 0:
-        pesan_validasi = "⚠️ Data peralatan masih kosong. Silakan isi minimal **1 peralatan elektronik** (jumlah unit dan lama nyala per hari) pada **Bagian 2 atau 3** di panel sebelah kiri."
-    else:
-        st.session_state["sudah_hitung"] = True
-        st.rerun()
-
 if not st.session_state["sudah_hitung"]:
-    status_step1_class = "done" if golongan_sudah_dipilih else ""
-    teks_step1 = f"✅ Terpilih: {pilihan_golongan.split('(')[0].strip()}" if golongan_sudah_dipilih else "⏳ Belum dipilih (Buka menu >> di pojok kiri atas)"
-
-    status_step2_class = "done" if jumlah_jenis_alat_diisi > 0 else ""
-    teks_step2 = f"✅ {jumlah_jenis_alat_diisi} jenis alat sudah diisi" if jumlah_jenis_alat_diisi > 0 else "⏳ Masih kosong (Isi Bagian 2/3 di menu kiri)"
-
-    status_step3_class = "done" if data_siap_dihitung else ""
-    teks_step3 = "🟢 Siap! Klik tombol di bawah untuk melihat hasil" if data_siap_dihitung else "🔒 Lengkapi Langkah 1 & 2 terlebih dahulu"
-
-    render_html(f"""
-    <div class="wizard-hero">
-        <div class="wizard-badge">🧭 PANDUAN PENGISIAN DARI AWAL SAMPAI AKHIR</div>
-        <div class="wizard-title">Silakan Isi Data Listrik Rumah Anda di Panel Menu Kiri (Tombol &raquo;)</div>
-        <div class="wizard-sub">
-            Semua kolom input sengaja dikosongkan agar Anda bisa mengisi sendiri sesuai kondisi nyata di rumah Anda.
-            Jika membuka lewat HP, tekan ikon tanda panah ganda <b>(&raquo;)</b> di pojok kiri atas untuk membuka formulir pengisian:
-        </div>
-        <div class="step-grid">
-            <div class="step-card {status_step1_class}">
-                <div class="step-num">Langkah 1 • Bagian 1 Kiri</div>
-                <div class="step-heading">Pilih Daya PLN & Anggaran</div>
-                <div class="step-desc">Pilih golongan daya meteran listrik rumah Anda (misal 900 VA atau 1300 VA) serta target anggaran bulanan jika ada.</div>
-                <div class="step-status">{teks_step1}</div>
-            </div>
-            <div class="step-card {status_step2_class}">
-                <div class="step-num">Langkah 2 • Bagian 2 & 3 Kiri</div>
-                <div class="step-heading">Isi Alat Elektronik & Jam Nyala</div>
-                <div class="step-desc">Masukkan jumlah unit dan geser berapa jam per hari alat tersebut menyala (Kulkas, AC, Magicom, Lampu, Kipas, dll).</div>
-                <div class="step-status">{teks_step2}</div>
-            </div>
-            <div class="step-card {status_step3_class}">
-                <div class="step-num">Langkah 3 • Output Analisis</div>
-                <div class="step-heading">Lihat Hasil Perhitungan</div>
-                <div class="step-desc">Setelah semua alat terisi, tekan tombol hitung di bawah ini untuk menampilkan rincian biaya, ketahanan token, dan grafik.</div>
-                <div class="step-status">{teks_step3}</div>
-            </div>
-        </div>
+    render_html("""
+    <div class="input-intro-banner">
+        📋 <b>Silakan isi data listrik rumah Anda dari atas ke bawah.</b> Semua kolom awal bernilai kosong (0). Setelah selesai mengisi peralatan yang ada di rumah, tekan tombol <b>Hitung &amp; Lihat Hasil Perhitungan</b> di bagian paling bawah.
     </div>
     """)
 
-    if pesan_validasi:
-        st.error(pesan_validasi)
+    if st.button("🔄 Kosongkan / Reset Semua Isian", use_container_width=True):
+        reset_semua_isian()
+        st.rerun()
 
-    col_btn_tengah, _ = st.columns([1.4, 1])
-    with col_btn_tengah:
-        if st.button("🚀 Hitung & Lihat Output Perhitungan Sekarang", type="primary", use_container_width=True):
-            if not golongan_sudah_dipilih:
-                st.error("⚠️ Silakan pilih **Golongan Daya Listrik (PLN)** terlebih dahulu pada **Bagian 1** di panel menu kiri.")
-            elif jumlah_jenis_alat_diisi == 0:
-                st.error("⚠️ Data peralatan masih kosong. Silakan isi minimal **1 peralatan elektronik** (jumlah unit dan lama nyala per hari) pada **Bagian 2 atau 3** di panel menu kiri.")
-            else:
-                st.session_state["sudah_hitung"] = True
-                st.rerun()
+    # --- BAGIAN 1: DAYA LISTRIK & TARGET ANGGARAN ---
+    render_html("""
+    <div class="form-section-header">
+        <div class="form-section-title">1. Daya Listrik &amp; Target Anggaran</div>
+        <div class="form-section-sub">Wajib pilih golongan daya meteran PLN rumah Anda terlebih dahulu.</div>
+    </div>
+    """)
+
+    opsi_pln_lengkap = [PLACEHOLDER_PLN] + list(GOLONGAN_PLN.keys())
+    col_b1_a, col_b1_b = st.columns(2)
+    with col_b1_a:
+        pilihan_golongan = st.selectbox(
+            "Golongan Daya Listrik (PLN) *",
+            options=opsi_pln_lengkap,
+            key="pilihan_golongan"
+        )
+    with col_b1_b:
+        target_anggaran = st.number_input(
+            "Target Maksimal Tagihan / Bulan (Rp — Opsional)",
+            min_value=0,
+            max_value=50000000,
+            step=25000,
+            key="target_anggaran",
+            help="Biarkan 0 jika tidak ingin membatasi anggaran bulanan."
+        )
+
+    pilihan_standby = st.selectbox(
+        "Colokan Kecil yang Terus Nempel 24 Jam (Wi-Fi, Charger HP, STB TV)",
+        options=list(OPSI_STANDBY_AWAM.keys()),
+        key="pilihan_standby"
+    )
+
+    # --- BAGIAN 2: PERALATAN ELEKTRONIK DI RUMAH ---
+    render_html("""
+    <div class="form-section-header">
+        <div class="form-section-title">2. Peralatan Elektronik di Rumah</div>
+        <div class="form-section-sub">Isi jumlah unit dan geser lama nyala per hari hanya untuk alat yang Anda miliki.</div>
+    </div>
+    """)
+
+    col_dev_left, col_dev_right = st.columns(2)
+
+    with col_dev_left:
+        # KULKAS
+        watt_kulkas_preview = OPSI_KULKAS[st.session_state["pilihan_kulkas"]]
+        render_html(f"""
+        <div class="device-box-label">
+            <span class="device-box-name">❄️ Kulkas (Lemari Es)</span>
+            <span class="device-box-watt">{watt_kulkas_preview} W/unit</span>
+        </div>
+        """)
+        pilihan_kulkas = st.selectbox("Tipe Kulkas", options=list(OPSI_KULKAS.keys()), key="pilihan_kulkas", label_visibility="collapsed")
+        ck1, ck2 = st.columns([1, 1.8])
+        unit_kulkas = ck1.number_input("Jumlah Unit Kulkas", min_value=0, max_value=5, step=1, key="unit_kulkas")
+        jam_kulkas_raw = ck2.slider("Nyala Kulkas (Jam/Hari)", min_value=0.0, max_value=24.0, step=0.5, key="jam_kulkas", disabled=(unit_kulkas == 0))
+
+        # AC
+        watt_ac_preview = OPSI_AC[st.session_state["pilihan_ac"]]
+        render_html(f"""
+        <div class="device-box-label">
+            <span class="device-box-name">🌬️ Air Conditioner (AC)</span>
+            <span class="device-box-watt">{watt_ac_preview} W/unit</span>
+        </div>
+        """)
+        pilihan_ac = st.selectbox("Kapasitas AC", options=list(OPSI_AC.keys()), key="pilihan_ac", label_visibility="collapsed")
+        ca1, ca2 = st.columns([1, 1.8])
+        unit_ac = ca1.number_input("Jumlah Unit AC", min_value=0, max_value=5, step=1, key="unit_ac")
+        jam_ac_raw = ca2.slider("Nyala AC (Jam/Hari)", min_value=0.0, max_value=24.0, step=0.5, key="jam_ac", disabled=(unit_ac == 0))
+
+        # MAGICOM
+        render_html(f"""
+        <div class="device-box-label">
+            <span class="device-box-name">🍚 Magicom (Penanak Nasi)</span>
+            <span class="device-box-watt">Masak {WATT_MAGICOM_COOK}W / Hangat {WATT_MAGICOM_WARM}W</span>
+        </div>
+        """)
+        cm1, cm2 = st.columns([1, 1.8])
+        unit_magicom = cm1.number_input("Jumlah Unit Magicom", min_value=0, max_value=5, step=1, key="unit_magicom")
+        masak_kali = cm2.slider("Masak Nasi (Kali/Hari)", min_value=0, max_value=4, step=1, key="masak_magicom", disabled=(unit_magicom == 0))
+        warm_jam = st.slider("Lama Mode Menghangatkan (Jam/Hari)", min_value=0.0, max_value=24.0, step=1.0, key="warm_magicom", disabled=(unit_magicom == 0))
+
+        # MESIN CUCI
+        render_html(f"""
+        <div class="device-box-label">
+            <span class="device-box-name">🧺 Mesin Cuci</span>
+            <span class="device-box-watt">{WATT_MESIN_CUCI} W/unit</span>
+        </div>
+        """)
+        cc1, cc2 = st.columns([1, 1.8])
+        unit_cuci = cc1.number_input("Jumlah Unit Mesin Cuci", min_value=0, max_value=3, step=1, key="unit_cuci")
+        jam_cuci_minggu = cc2.slider("Total Jam Cuci / Minggu", min_value=0.0, max_value=21.0, step=0.5, key="jam_cuci_minggu", disabled=(unit_cuci == 0))
+
+    with col_dev_right:
+        ikon_perangkat = {
+            "Lampu LED (Per Titik)": "💡",
+            "Kipas Angin": "🌀",
+            "TV LED": "📺",
+            "Sanyo (Pompa Air Otomatis)": "💧",
+            "Water Heater": "🚿",
+        }
+        for idx, (nama, spec) in enumerate(PERANGKAT_LAIN.items()):
+            label_satuan = "W/lampu" if nama == "Lampu LED (Per Titik)" else "W/unit"
+            ikon = ikon_perangkat.get(nama, "🔌")
+            render_html(f"""
+            <div class="device-box-label">
+                <span class="device-box-name">{ikon} {nama}</span>
+                <span class="device-box-watt">{spec['watt']} {label_satuan}</span>
+            </div>
+            """)
+            c_unit, c_jam = st.columns([1, 1.8])
+            lbl_unit = "Jumlah Lampu" if nama == "Lampu LED (Per Titik)" else "Jumlah Unit"
+            unit_val = c_unit.number_input(lbl_unit, min_value=0, max_value=spec["max_unit"], step=1, key=f"unit_{idx}")
+            c_jam.slider("Lama Nyala (Jam/Hari)", min_value=0.0, max_value=24.0, step=0.5, key=f"jam_{idx}", disabled=(unit_val == 0))
+
+    # --- BAGIAN 3: ALAT TAMBAHAN LAINNYA (OPSIONAL) ---
+    render_html("""
+    <div class="form-section-header">
+        <div class="form-section-title">3. Alat Tambahan Lainnya (Opsional)</div>
+        <div class="form-section-sub">Isi jika ada alat lain seperti Setrika, PC, atau Dispenser. Biarkan 0 jika tidak ada.</div>
+    </div>
+    """)
+
+    col_c1, col_c2 = st.columns(2)
+    with col_c1:
+        raw_nama_c1 = st.text_input("Nama Alat Tambahan 1", placeholder="Contoh: Setrika Listrik", key="nama_c1")
+        cw1, cu1 = st.columns(2)
+        watt_c1 = cw1.number_input("Daya Alat 1 (Watt)", min_value=0, max_value=5000, step=5, key="watt_c1")
+        unit_c1 = cu1.number_input("Unit Alat 1", min_value=0, max_value=10, step=1, key="unit_c1")
+        st.slider("Lama Nyala Alat 1 (Jam/Hari)", min_value=0.0, max_value=24.0, step=0.5, disabled=(unit_c1 == 0 or watt_c1 == 0), key="jam_c1")
+
+    with col_c2:
+        raw_nama_c2 = st.text_input("Nama Alat Tambahan 2", placeholder="Contoh: PC / Komputer", key="nama_c2")
+        cw2, cu2 = st.columns(2)
+        watt_c2 = cw2.number_input("Daya Alat 2 (Watt)", min_value=0, max_value=5000, step=5, key="watt_c2")
+        unit_c2 = cu2.number_input("Unit Alat 2", min_value=0, max_value=10, step=1, key="unit_c2")
+        st.slider("Lama Nyala Alat 2 (Jam/Hari)", min_value=0.0, max_value=24.0, step=0.5, disabled=(unit_c2 == 0 or watt_c2 == 0), key="jam_c2")
+
+    st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+
+    # Validasi jumlah input terisi
+    golongan_ok = (st.session_state["pilihan_golongan"] != PLACEHOLDER_PLN)
+    jumlah_alat_ok = 0
+    if st.session_state["unit_kulkas"] > 0 and st.session_state["jam_kulkas"] > 0:
+        jumlah_alat_ok += 1
+    if st.session_state["unit_ac"] > 0 and st.session_state["jam_ac"] > 0:
+        jumlah_alat_ok += 1
+    if st.session_state["unit_magicom"] > 0 and (st.session_state["masak_magicom"] > 0 or st.session_state["warm_magicom"] > 0):
+        jumlah_alat_ok += 1
+    if st.session_state["unit_cuci"] > 0 and st.session_state["jam_cuci_minggu"] > 0:
+        jumlah_alat_ok += 1
+    for idx_cek in range(len(PERANGKAT_LAIN)):
+        if st.session_state[f"unit_{idx_cek}"] > 0 and st.session_state[f"jam_{idx_cek}"] > 0:
+            jumlah_alat_ok += 1
+    if st.session_state["unit_c1"] > 0 and st.session_state["watt_c1"] > 0 and st.session_state["jam_c1"] > 0:
+        jumlah_alat_ok += 1
+    if st.session_state["unit_c2"] > 0 and st.session_state["watt_c2"] > 0 and st.session_state["jam_c2"] > 0:
+        jumlah_alat_ok += 1
+    if OPSI_STANDBY_AWAM[st.session_state["pilihan_standby"]] > 0:
+        jumlah_alat_ok += 1
+
+    if st.button("🚀 Hitung & Lihat Hasil Perhitungan Sekarang", type="primary", use_container_width=True):
+        if not golongan_ok:
+            st.error("⚠️ Silakan pilih **Golongan Daya Listrik (PLN)** terlebih dahulu pada **Bagian 1** di atas.")
+        elif jumlah_alat_ok == 0:
+            st.error("⚠️ Data peralatan masih kosong. Silakan isi minimal **1 peralatan elektronik** (jumlah unit dan lama nyala per hari) pada **Bagian 2 atau 3** di atas.")
+        else:
+            st.session_state["sudah_hitung"] = True
+            st.session_state["perlu_scroll_atas"] = True
+            st.rerun()
 
 else:
     # ==========================================
-    # TAMPILAN 2: OUTPUT PERHITUNGAN LENGKAP (SETELAH PENGISIAN SELESAI)
+    # HALAMAN 2: OUTPUT PERHITUNGAN LENGKAP
     # ==========================================
-    if not golongan_sudah_dipilih or jumlah_jenis_alat_diisi == 0:
-        st.warning("Data input kembali kosong. Silakan lengkapi pengisian di panel kiri lalu klik tombol hitung.")
-        if st.button("⬅️ Kembali ke Panduan Pengisian"):
+    pilihan_golongan = st.session_state["pilihan_golongan"]
+    target_anggaran = st.session_state["target_anggaran"]
+    pilihan_standby = st.session_state["pilihan_standby"]
+    watt_standby = OPSI_STANDBY_AWAM[pilihan_standby]
+
+    pilihan_kulkas = st.session_state["pilihan_kulkas"]
+    watt_kulkas = OPSI_KULKAS[pilihan_kulkas]
+    unit_kulkas = st.session_state["unit_kulkas"]
+    jam_kulkas = st.session_state["jam_kulkas"] if unit_kulkas > 0 else 0.0
+
+    pilihan_ac = st.session_state["pilihan_ac"]
+    watt_ac = OPSI_AC[pilihan_ac]
+    unit_ac = st.session_state["unit_ac"]
+    jam_ac = st.session_state["jam_ac"] if unit_ac > 0 else 0.0
+
+    unit_magicom = st.session_state["unit_magicom"]
+    masak_kali = st.session_state["masak_magicom"] if unit_magicom > 0 else 0
+    warm_jam = st.session_state["warm_magicom"] if unit_magicom > 0 else 0.0
+
+    unit_cuci = st.session_state["unit_cuci"]
+    jam_cuci_minggu = st.session_state["jam_cuci_minggu"] if unit_cuci > 0 else 0.0
+
+    input_unit_lain = {}
+    input_jam_lain = {}
+    for idx_read, nama_read in enumerate(PERANGKAT_LAIN.keys()):
+        u_val = st.session_state[f"unit_{idx_read}"]
+        j_val = st.session_state[f"jam_{idx_read}"] if u_val > 0 else 0.0
+        input_unit_lain[nama_read] = u_val
+        input_jam_lain[nama_read] = j_val
+
+    nama_c1 = st.session_state["nama_c1"].strip() or "Alat Tambahan 1"
+    watt_c1 = st.session_state["watt_c1"]
+    unit_c1 = st.session_state["unit_c1"]
+    jam_c1 = st.session_state["jam_c1"] if (unit_c1 > 0 and watt_c1 > 0) else 0.0
+
+    nama_c2 = st.session_state["nama_c2"].strip() or "Alat Tambahan 2"
+    if nama_c2 == nama_c1:
+        nama_c2 = f"{nama_c2} (2)"
+    watt_c2 = st.session_state["watt_c2"]
+    unit_c2 = st.session_state["unit_c2"]
+    jam_c2 = st.session_state["jam_c2"] if (unit_c2 > 0 and watt_c2 > 0) else 0.0
+
+    batas_va = GOLONGAN_PLN[pilihan_golongan]["va"]
+    TARIF_PLN = GOLONGAN_PLN[pilihan_golongan]["tarif"]
+
+    # Tombol Navigasi Cepat Kembali ke Pengisian Input / Reset
+    col_nav1, col_nav2 = st.columns(2)
+    with col_nav1:
+        if st.button("✏️ Ubah / Edit Data Input", use_container_width=True):
             st.session_state["sudah_hitung"] = False
+            st.session_state["perlu_scroll_atas"] = True
             st.rerun()
-        st.stop()
+    with col_nav2:
+        if st.button("🔄 Kosongkan / Reset Semua", use_container_width=True):
+            reset_semua_isian()
+            st.rerun()
 
     PERANGKAT_UMUM = {
         pilihan_kulkas: {"watt": watt_kulkas, "normal_jam": 24.0, "std_jam": 1.5, "is_custom": False},
@@ -1652,7 +1595,7 @@ else:
                     <div class="feature-title">🎯 Target Anggaran Bulanan (Opsional)</div>
                     <div style="font-size:13.5px; color:#cbd5e1; line-height:1.6; margin-top:8px;">
                         Anda belum mengisi batas maksimal anggaran bulanan (nilai saat ini <b>Rp 0</b>).<br>
-                        Jika ingin membandingkan apakah tagihan <b>±Rp {estimasi_belanja_token_bulan:,.0f}/bulan</b> masuk anggaran Anda, silakan isi kolom <b>Target Maksimal Tagihan</b> pada Bagian 1 di panel kiri.
+                        Jika ingin membandingkan apakah tagihan <b>±Rp {estimasi_belanja_token_bulan:,.0f}/bulan</b> masuk anggaran Anda, tekan tombol <b>Ubah / Edit Data Input</b> di atas.
                     </div>
                 </div>
                 """)
@@ -1931,7 +1874,7 @@ render_html(f"""
                 Program Studi S1 Teknik Elektro — <b>Universitas Semarang (USM)</b>
             </div>
             <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">
-                Smart Home AI: Asisten Pintar Pemantauan Energi & Deteksi Pemborosan Listrik Rumah Tangga
+                Smart Home AI: Asisten Pintar Pemantauan Energi &amp; Deteksi Pemborosan Listrik Rumah Tangga
             </div>
         </div>
     </div>
