@@ -114,13 +114,44 @@ render_html("""
         fill: #f8fafc !important;
     }
 
-    /* Ruang atas diperbesar agar judul tidak tertutup bilah menu Streamlit Cloud */
+    /* Ruang atas diperbesar agar judul & tombol atas kiri tidak tertutup bilah menu */
     .block-container {
-        padding-top: 4.5rem !important;
+        padding-top: 4.3rem !important;
         padding-bottom: 2.2rem !important;
         padding-left: 1.6rem !important;
         padding-right: 1.6rem !important;
         max-width: 1220px;
+    }
+
+    /* Baris Tombol Atas Kiri (Tetap Rapat di Atas Kiri pada Layar HP & Laptop) */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .top-nav-anchor) > div[data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        gap: 8px !important;
+        margin-bottom: 6px !important;
+    }
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .top-nav-anchor) > div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"],
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .top-nav-anchor) > div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+        width: auto !important;
+        flex: 0 0 auto !important;
+        min-width: unset !important;
+    }
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .top-nav-anchor) > div[data-testid="stHorizontalBlock"] > div:first-child button {
+        background: linear-gradient(135deg, #0284c7, #2563eb) !important;
+        color: #ffffff !important;
+        border: 1px solid #38bdf8 !important;
+        font-weight: 700 !important;
+        padding: 0.42rem 0.95rem !important;
+        border-radius: 10px !important;
+        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.38) !important;
+    }
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .top-nav-anchor) > div[data-testid="stHorizontalBlock"] > div:first-child button:hover {
+        background: linear-gradient(135deg, #0369a1, #1d4ed8) !important;
+        border-color: #7dd3fc !important;
+        color: #ffffff !important;
     }
 
     /* Kontras Tinggi untuk Semua Teks & Label di Mode Light maupun Dark */
@@ -585,7 +616,7 @@ render_html("""
 
     @media (max-width: 768px) {
         .block-container {
-            padding-top: 4.8rem !important;
+            padding-top: 4.5rem !important;
             padding-left: 0.9rem !important;
             padding-right: 0.9rem !important;
         }
@@ -650,15 +681,10 @@ PERANGKAT_LAIN = {
 
 
 # ==========================================
-# INISIALISASI STATE KOSONG SAAT AWAL BUKA
+# INISIALISASI & PENYIMPANAN STATE INPUT
 # ==========================================
-def inisialisasi_state_kosong():
-    if "sudah_hitung" not in st.session_state:
-        st.session_state["sudah_hitung"] = False
-    if "perlu_scroll_atas" not in st.session_state:
-        st.session_state["perlu_scroll_atas"] = False
-
-    defaults = {
+def get_default_inputs() -> dict:
+    data = {
         "pilihan_golongan": PLACEHOLDER_PLN,
         "target_anggaran": 0,
         "pilihan_standby": list(OPSI_STANDBY_AWAM.keys())[0],
@@ -682,45 +708,45 @@ def inisialisasi_state_kosong():
         "unit_c2": 0,
         "jam_c2": 0.0,
     }
-    for k, v in defaults.items():
+    for idx_init in range(len(PERANGKAT_LAIN)):
+        data[f"unit_{idx_init}"] = 0
+        data[f"jam_{idx_init}"] = 0.0
+    return data
+
+
+def inisialisasi_state_kosong():
+    if "sudah_hitung" not in st.session_state:
+        st.session_state["sudah_hitung"] = False
+    if "perlu_scroll_atas" not in st.session_state:
+        st.session_state["perlu_scroll_atas"] = False
+    if "saved_inputs" not in st.session_state:
+        st.session_state["saved_inputs"] = get_default_inputs()
+
+    for k, v in st.session_state["saved_inputs"].items():
         if k not in st.session_state:
             st.session_state[k] = v
 
-    for idx_init in range(len(PERANGKAT_LAIN)):
-        if f"unit_{idx_init}" not in st.session_state:
-            st.session_state[f"unit_{idx_init}"] = 0
-        if f"jam_{idx_init}" not in st.session_state:
-            st.session_state[f"jam_{idx_init}"] = 0.0
+
+def simpan_input_ke_memori():
+    defaults = get_default_inputs()
+    saved = {}
+    for k, default_val in defaults.items():
+        saved[k] = st.session_state.get(k, default_val)
+    st.session_state["saved_inputs"] = saved
+
+
+def pulihkan_input_dari_memori():
+    for k, v in st.session_state.get("saved_inputs", get_default_inputs()).items():
+        st.session_state[k] = v
 
 
 def reset_semua_isian():
+    defaults = get_default_inputs()
+    st.session_state["saved_inputs"] = defaults.copy()
     st.session_state["sudah_hitung"] = False
     st.session_state["perlu_scroll_atas"] = True
-    st.session_state["pilihan_golongan"] = PLACEHOLDER_PLN
-    st.session_state["target_anggaran"] = 0
-    st.session_state["pilihan_standby"] = list(OPSI_STANDBY_AWAM.keys())[0]
-    st.session_state["pilihan_kulkas"] = list(OPSI_KULKAS.keys())[0]
-    st.session_state["unit_kulkas"] = 0
-    st.session_state["jam_kulkas"] = 0.0
-    st.session_state["pilihan_ac"] = list(OPSI_AC.keys())[0]
-    st.session_state["unit_ac"] = 0
-    st.session_state["jam_ac"] = 0.0
-    st.session_state["unit_magicom"] = 0
-    st.session_state["masak_magicom"] = 0
-    st.session_state["warm_magicom"] = 0.0
-    st.session_state["unit_cuci"] = 0
-    st.session_state["jam_cuci_minggu"] = 0.0
-    st.session_state["nama_c1"] = ""
-    st.session_state["watt_c1"] = 0
-    st.session_state["unit_c1"] = 0
-    st.session_state["jam_c1"] = 0.0
-    st.session_state["nama_c2"] = ""
-    st.session_state["watt_c2"] = 0
-    st.session_state["unit_c2"] = 0
-    st.session_state["jam_c2"] = 0.0
-    for idx_init in range(len(PERANGKAT_LAIN)):
-        st.session_state[f"unit_{idx_init}"] = 0
-        st.session_state[f"jam_{idx_init}"] = 0.0
+    for k, v in defaults.items():
+        st.session_state[k] = v
 
 
 inisialisasi_state_kosong()
@@ -945,6 +971,25 @@ def render_animasi_dashboard(is_boros, indeks_wajar, total_kwh_hari, total_watt,
 
 
 # ==========================================
+# BILAH NAVIGASI ATAS KIRI (MUNCUL SAAT MELIHAT OUTPUT)
+# ==========================================
+if st.session_state["sudah_hitung"]:
+    with st.container():
+        render_html('<span class="top-nav-anchor"></span>')
+        col_nav_edit, col_nav_reset, _ = st.columns([1.2, 1.0, 3.0])
+        with col_nav_edit:
+            if st.button("⬅️ Edit Input", key="btn_edit_atas_kiri", help="Kembali ke halaman pengisian untuk mengubah data input"):
+                pulihkan_input_dari_memori()
+                st.session_state["sudah_hitung"] = False
+                st.session_state["perlu_scroll_atas"] = True
+                st.rerun()
+        with col_nav_reset:
+            if st.button("🔄 Reset", key="btn_reset_atas_kiri", help="Kosongkan semua data dari awal"):
+                reset_semua_isian()
+                st.rerun()
+
+
+# ==========================================
 # HEADER UTAMA APLIKASI
 # ==========================================
 render_html(f"""
@@ -1138,6 +1183,7 @@ if not st.session_state["sudah_hitung"]:
         elif jumlah_alat_ok == 0:
             st.error("⚠️ Data peralatan masih kosong. Silakan isi minimal **1 peralatan elektronik** (jumlah unit dan lama nyala per hari) pada **Bagian 2 atau 3** di atas.")
         else:
+            simpan_input_ke_memori()
             st.session_state["sudah_hitung"] = True
             st.session_state["perlu_scroll_atas"] = True
             st.rerun()
@@ -1146,62 +1192,52 @@ else:
     # ==========================================
     # HALAMAN 2: OUTPUT PERHITUNGAN LENGKAP
     # ==========================================
-    pilihan_golongan = st.session_state["pilihan_golongan"]
-    target_anggaran = st.session_state["target_anggaran"]
-    pilihan_standby = st.session_state["pilihan_standby"]
+    data_in = st.session_state["saved_inputs"]
+
+    pilihan_golongan = data_in["pilihan_golongan"]
+    target_anggaran = data_in["target_anggaran"]
+    pilihan_standby = data_in["pilihan_standby"]
     watt_standby = OPSI_STANDBY_AWAM[pilihan_standby]
 
-    pilihan_kulkas = st.session_state["pilihan_kulkas"]
+    pilihan_kulkas = data_in["pilihan_kulkas"]
     watt_kulkas = OPSI_KULKAS[pilihan_kulkas]
-    unit_kulkas = st.session_state["unit_kulkas"]
-    jam_kulkas = st.session_state["jam_kulkas"] if unit_kulkas > 0 else 0.0
+    unit_kulkas = data_in["unit_kulkas"]
+    jam_kulkas = data_in["jam_kulkas"] if unit_kulkas > 0 else 0.0
 
-    pilihan_ac = st.session_state["pilihan_ac"]
+    pilihan_ac = data_in["pilihan_ac"]
     watt_ac = OPSI_AC[pilihan_ac]
-    unit_ac = st.session_state["unit_ac"]
-    jam_ac = st.session_state["jam_ac"] if unit_ac > 0 else 0.0
+    unit_ac = data_in["unit_ac"]
+    jam_ac = data_in["jam_ac"] if unit_ac > 0 else 0.0
 
-    unit_magicom = st.session_state["unit_magicom"]
-    masak_kali = st.session_state["masak_magicom"] if unit_magicom > 0 else 0
-    warm_jam = st.session_state["warm_magicom"] if unit_magicom > 0 else 0.0
+    unit_magicom = data_in["unit_magicom"]
+    masak_kali = data_in["masak_magicom"] if unit_magicom > 0 else 0
+    warm_jam = data_in["warm_magicom"] if unit_magicom > 0 else 0.0
 
-    unit_cuci = st.session_state["unit_cuci"]
-    jam_cuci_minggu = st.session_state["jam_cuci_minggu"] if unit_cuci > 0 else 0.0
+    unit_cuci = data_in["unit_cuci"]
+    jam_cuci_minggu = data_in["jam_cuci_minggu"] if unit_cuci > 0 else 0.0
 
     input_unit_lain = {}
     input_jam_lain = {}
     for idx_read, nama_read in enumerate(PERANGKAT_LAIN.keys()):
-        u_val = st.session_state[f"unit_{idx_read}"]
-        j_val = st.session_state[f"jam_{idx_read}"] if u_val > 0 else 0.0
+        u_val = data_in[f"unit_{idx_read}"]
+        j_val = data_in[f"jam_{idx_read}"] if u_val > 0 else 0.0
         input_unit_lain[nama_read] = u_val
         input_jam_lain[nama_read] = j_val
 
-    nama_c1 = st.session_state["nama_c1"].strip() or "Alat Tambahan 1"
-    watt_c1 = st.session_state["watt_c1"]
-    unit_c1 = st.session_state["unit_c1"]
-    jam_c1 = st.session_state["jam_c1"] if (unit_c1 > 0 and watt_c1 > 0) else 0.0
+    nama_c1 = data_in["nama_c1"].strip() or "Alat Tambahan 1"
+    watt_c1 = data_in["watt_c1"]
+    unit_c1 = data_in["unit_c1"]
+    jam_c1 = data_in["jam_c1"] if (unit_c1 > 0 and watt_c1 > 0) else 0.0
 
-    nama_c2 = st.session_state["nama_c2"].strip() or "Alat Tambahan 2"
+    nama_c2 = data_in["nama_c2"].strip() or "Alat Tambahan 2"
     if nama_c2 == nama_c1:
         nama_c2 = f"{nama_c2} (2)"
-    watt_c2 = st.session_state["watt_c2"]
-    unit_c2 = st.session_state["unit_c2"]
-    jam_c2 = st.session_state["jam_c2"] if (unit_c2 > 0 and watt_c2 > 0) else 0.0
+    watt_c2 = data_in["watt_c2"]
+    unit_c2 = data_in["unit_c2"]
+    jam_c2 = data_in["jam_c2"] if (unit_c2 > 0 and watt_c2 > 0) else 0.0
 
     batas_va = GOLONGAN_PLN[pilihan_golongan]["va"]
     TARIF_PLN = GOLONGAN_PLN[pilihan_golongan]["tarif"]
-
-    # Tombol Navigasi Cepat Kembali ke Pengisian Input / Reset
-    col_nav1, col_nav2 = st.columns(2)
-    with col_nav1:
-        if st.button("✏️ Ubah / Edit Data Input", use_container_width=True):
-            st.session_state["sudah_hitung"] = False
-            st.session_state["perlu_scroll_atas"] = True
-            st.rerun()
-    with col_nav2:
-        if st.button("🔄 Kosongkan / Reset Semua", use_container_width=True):
-            reset_semua_isian()
-            st.rerun()
 
     PERANGKAT_UMUM = {
         pilihan_kulkas: {"watt": watt_kulkas, "normal_jam": 24.0, "std_jam": 1.5, "is_custom": False},
@@ -1595,7 +1631,7 @@ else:
                     <div class="feature-title">🎯 Target Anggaran Bulanan (Opsional)</div>
                     <div style="font-size:13.5px; color:#cbd5e1; line-height:1.6; margin-top:8px;">
                         Anda belum mengisi batas maksimal anggaran bulanan (nilai saat ini <b>Rp 0</b>).<br>
-                        Jika ingin membandingkan apakah tagihan <b>±Rp {estimasi_belanja_token_bulan:,.0f}/bulan</b> masuk anggaran Anda, tekan tombol <b>Ubah / Edit Data Input</b> di atas.
+                        Jika ingin membandingkan apakah tagihan <b>±Rp {estimasi_belanja_token_bulan:,.0f}/bulan</b> masuk anggaran Anda, tekan tombol <b>⬅️ Edit Input</b> di bagian atas kiri.
                     </div>
                 </div>
                 """)
@@ -1849,11 +1885,11 @@ else:
         """)
         st.latex(r"E_{\text{token}} = \frac{(N_{\text{token}} - \text{Admin}) \times \left(1 - \frac{p_{\text{PPJ}}}{100}\right)}{T_{\text{PLN}}}, \qquad \text{Ketahanan (Hari)} = \frac{E_{\text{token}}}{\sum E_{\text{harian}}}")
 
-        st.markdown("""
+        st.markdown(r"""
         **3. Algoritma Machine Learning yang Digunakan**
         * **Isolation Forest:** Menganalisis kombinasi durasi seluruh peralatan rumah tangga terhadap 120 data historis pola harian untuk mendeteksi pemakaian yang menyimpang dari kewajaran.
-        * **Z-Score Per Perangkat:** Mengukur simpangan durasi masing-masing alat ($Z = \\frac{t - \\mu}{\\sigma}$) untuk menentukan peralatan spesifik penyebab pemborosan.
-        * **Linear Regression:** Memproyeksikan garis tren biaya bulanan ($\hat{y} = \\beta_0 + \\beta_1 x$) berdasarkan total konsumsi kWh harian.
+        * **Z-Score Per Perangkat:** Mengukur simpangan durasi masing-masing alat ($Z = \frac{t - \mu}{\sigma}$) untuk menentukan peralatan spesifik penyebab pemborosan.
+        * **Linear Regression:** Memproyeksikan garis tren biaya bulanan ($\hat{y} = \beta_0 + \beta_1 x$) berdasarkan total konsumsi kWh harian.
         """)
 
 
