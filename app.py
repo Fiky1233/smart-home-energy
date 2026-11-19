@@ -73,6 +73,10 @@ render_html("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
+    :root {
+        color-scheme: dark;
+    }
+
     html, body, [class*="css"] {
         font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif !important;
     }
@@ -84,8 +88,20 @@ render_html("""
         color: #f8fafc;
     }
 
+    /* Bilah atas Streamlit agar tidak putih menyilaukan saat Mode Light */
+    header[data-testid="stHeader"] {
+        background-color: rgba(7, 11, 20, 0.85) !important;
+        backdrop-filter: blur(8px);
+    }
+    header[data-testid="stHeader"] button,
+    header[data-testid="stHeader"] svg {
+        color: #f8fafc !important;
+        fill: #f8fafc !important;
+    }
+
+    /* Ruang atas diperbesar agar judul tidak tertutup bilah menu Streamlit Cloud */
     .block-container {
-        padding-top: 2.5rem !important;
+        padding-top: 4.5rem !important;
         padding-bottom: 2.2rem !important;
         padding-left: 1.6rem !important;
         padding-right: 1.6rem !important;
@@ -97,6 +113,140 @@ render_html("""
         border-right: 1px solid rgba(56, 189, 248, 0.25);
     }
 
+    [data-testid="stSidebarUserContent"] {
+        padding-top: 1.35rem !important;
+    }
+
+    /* Kontras Tinggi untuk Semua Teks & Label di Mode Light maupun Dark */
+    section[data-testid="stSidebar"] h1,
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3,
+    section[data-testid="stSidebar"] h4,
+    .stApp h1, .stApp h2, .stApp h3, .stApp h4 {
+        color: #f8fafc !important;
+    }
+
+    [data-testid="stWidgetLabel"] p,
+    [data-testid="stWidgetLabel"] label,
+    section[data-testid="stSidebar"] label,
+    .stApp label {
+        color: #f1f5f9 !important;
+        font-weight: 600 !important;
+    }
+
+    [data-testid="stMarkdownContainer"] p,
+    [data-testid="stMarkdownContainer"] li {
+        color: #e2e8f0 !important;
+    }
+    [data-testid="stMarkdownContainer"] strong,
+    [data-testid="stMarkdownContainer"] b {
+        color: #ffffff !important;
+    }
+
+    [data-testid="stCaptionContainer"],
+    [data-testid="stCaptionContainer"] p {
+        color: #94a3b8 !important;
+    }
+
+    .stApp code {
+        background-color: rgba(30, 41, 59, 0.92) !important;
+        color: #38bdf8 !important;
+        border: 1px solid rgba(56, 189, 248, 0.3) !important;
+        padding: 2px 6px !important;
+        border-radius: 6px !important;
+    }
+
+    [data-testid="stTooltipHoverTarget"] svg {
+        color: #94a3b8 !important;
+        stroke: #94a3b8 !important;
+    }
+
+    /* Kotak Input, Selectbox, Number Input & Dropdown saat Mode Light */
+    [data-baseweb="select"] > div,
+    [data-baseweb="input"],
+    [data-baseweb="base-input"] {
+        background-color: #1e293b !important;
+        border-color: rgba(148, 163, 184, 0.38) !important;
+        color: #f8fafc !important;
+    }
+    [data-baseweb="select"] span,
+    [data-baseweb="select"] div,
+    [data-baseweb="input"] input,
+    [data-baseweb="base-input"] input {
+        color: #f8fafc !important;
+        -webkit-text-fill-color: #f8fafc !important;
+    }
+    [data-baseweb="input"] input::placeholder,
+    [data-baseweb="base-input"] input::placeholder {
+        color: #94a3b8 !important;
+        -webkit-text-fill-color: #94a3b8 !important;
+        opacity: 1 !important;
+    }
+    [data-baseweb="select"] svg {
+        fill: #cbd5e1 !important;
+    }
+    [data-baseweb="popover"],
+    [data-baseweb="menu"],
+    ul[role="listbox"] {
+        background-color: #0f172a !important;
+        border: 1px solid rgba(56, 189, 248, 0.35) !important;
+    }
+    ul[role="listbox"] li,
+    [role="option"] {
+        background-color: #0f172a !important;
+        color: #f8fafc !important;
+    }
+    ul[role="listbox"] li:hover,
+    [role="option"]:hover,
+    [aria-selected="true"][role="option"] {
+        background-color: #1e293b !important;
+        color: #38bdf8 !important;
+    }
+
+    button[data-testid="stNumberInputStepDown"],
+    button[data-testid="stNumberInputStepUp"] {
+        background-color: #334155 !important;
+        color: #f8fafc !important;
+        border-color: rgba(148, 163, 184, 0.3) !important;
+    }
+    button[data-testid="stNumberInputStepDown"]:hover,
+    button[data-testid="stNumberInputStepUp"]:hover {
+        background-color: #0284c7 !important;
+        color: #ffffff !important;
+    }
+
+    /* Tombol Sekunder, Tombol Unduh & Expander saat Mode Light */
+    button[kind="secondary"],
+    [data-testid="stDownloadButton"] button {
+        background-color: #1e293b !important;
+        color: #f8fafc !important;
+        border: 1px solid rgba(56, 189, 248, 0.45) !important;
+    }
+    button[kind="secondary"]:hover,
+    [data-testid="stDownloadButton"] button:hover {
+        background-color: #0f172a !important;
+        border-color: #38bdf8 !important;
+        color: #38bdf8 !important;
+    }
+
+    [data-testid="stExpander"] {
+        background-color: rgba(15, 23, 42, 0.78) !important;
+        border: 1px solid rgba(148, 163, 184, 0.25) !important;
+        border-radius: 14px !important;
+    }
+    [data-testid="stExpander"] summary,
+    [data-testid="stExpander"] summary span,
+    [data-testid="stExpander"] summary p {
+        color: #f8fafc !important;
+    }
+    [data-testid="stExpander"] summary svg {
+        fill: #38bdf8 !important;
+    }
+
+    .katex, .katex * {
+        color: #f8fafc !important;
+    }
+
     /* Header Utama */
     .main-app-header {
         display: flex;
@@ -104,7 +254,8 @@ render_html("""
         align-items: center;
         justify-content: space-between;
         gap: 12px;
-        margin-bottom: 14px;
+        padding-top: 6px;
+        margin-bottom: 16px;
     }
     .main-app-title {
         font-size: 25px;
@@ -113,7 +264,7 @@ render_html("""
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         letter-spacing: -0.4px;
-        line-height: 1.2;
+        line-height: 1.35;
     }
     .live-pill {
         display: inline-flex;
@@ -359,7 +510,7 @@ render_html("""
         padding: 10px 18px;
         font-weight: 700;
         font-size: 13.5px;
-        color: #94a3b8;
+        color: #cbd5e1 !important;
         transition: all 0.2s ease;
     }
     .stTabs [aria-selected="true"] {
@@ -463,12 +614,13 @@ render_html("""
 
     @media (max-width: 768px) {
         .block-container {
-            padding-top: 2.2rem !important;
-            padding-left: 0.85rem !important;
-            padding-right: 0.85rem !important;
+            padding-top: 4.8rem !important;
+            padding-left: 0.9rem !important;
+            padding-right: 0.9rem !important;
         }
         .main-app-title {
             font-size: 20px;
+            line-height: 1.35;
         }
         .kpi-grid {
             grid-template-columns: repeat(2, 1fr);
@@ -1044,10 +1196,10 @@ if klik_hitung_sidebar:
 
 if not st.session_state["sudah_hitung"]:
     status_step1_class = "done" if golongan_sudah_dipilih else ""
-    teks_step1 = f"✅ Terpilih: {pilihan_golongan.split('(')[0].strip()}" if golongan_sudah_dipilih else "⏳ Belum dipilih (Isi Bagian 1 di kiri)"
+    teks_step1 = f"✅ Terpilih: {pilihan_golongan.split('(')[0].strip()}" if golongan_sudah_dipilih else "⏳ Belum dipilih (Buka menu >> di pojok kiri atas)"
 
     status_step2_class = "done" if jumlah_jenis_alat_diisi > 0 else ""
-    teks_step2 = f"✅ {jumlah_jenis_alat_diisi} jenis alat sudah diisi" if jumlah_jenis_alat_diisi > 0 else "⏳ Masih kosong (Isi Bagian 2/3 di kiri)"
+    teks_step2 = f"✅ {jumlah_jenis_alat_diisi} jenis alat sudah diisi" if jumlah_jenis_alat_diisi > 0 else "⏳ Masih kosong (Isi Bagian 2/3 di menu kiri)"
 
     status_step3_class = "done" if data_siap_dihitung else ""
     teks_step3 = "🟢 Siap! Klik tombol di bawah untuk melihat hasil" if data_siap_dihitung else "🔒 Lengkapi Langkah 1 & 2 terlebih dahulu"
@@ -1055,10 +1207,10 @@ if not st.session_state["sudah_hitung"]:
     render_html(f"""
     <div class="wizard-hero">
         <div class="wizard-badge">🧭 PANDUAN PENGISIAN DARI AWAL SAMPAI AKHIR</div>
-        <div class="wizard-title">Silakan Isi Data Listrik Rumah Anda di Panel Sebelah Kiri</div>
+        <div class="wizard-title">Silakan Isi Data Listrik Rumah Anda di Panel Menu Kiri (Tombol &raquo;)</div>
         <div class="wizard-sub">
-            Semua kolom input di samping kiri sengaja dikosongkan agar Anda bisa mengisi sendiri sesuai kondisi nyata di rumah Anda.
-            Ikuti 3 langkah di bawah ini dari awal sampai akhir untuk melihat estimasi tagihan dan deteksi pemborosan listrik:
+            Semua kolom input sengaja dikosongkan agar Anda bisa mengisi sendiri sesuai kondisi nyata di rumah Anda.
+            Jika membuka lewat HP, tekan ikon tanda panah ganda <b>(&raquo;)</b> di pojok kiri atas untuk membuka formulir pengisian:
         </div>
         <div class="step-grid">
             <div class="step-card {status_step1_class}">
@@ -1090,9 +1242,9 @@ if not st.session_state["sudah_hitung"]:
     with col_btn_tengah:
         if st.button("🚀 Hitung & Lihat Output Perhitungan Sekarang", type="primary", use_container_width=True):
             if not golongan_sudah_dipilih:
-                st.error("⚠️ Silakan pilih **Golongan Daya Listrik (PLN)** terlebih dahulu pada **Bagian 1** di panel sebelah kiri.")
+                st.error("⚠️ Silakan pilih **Golongan Daya Listrik (PLN)** terlebih dahulu pada **Bagian 1** di panel menu kiri.")
             elif jumlah_jenis_alat_diisi == 0:
-                st.error("⚠️ Data peralatan masih kosong. Silakan isi minimal **1 peralatan elektronik** (jumlah unit dan lama nyala per hari) pada **Bagian 2 atau 3** di panel sebelah kiri.")
+                st.error("⚠️ Data peralatan masih kosong. Silakan isi minimal **1 peralatan elektronik** (jumlah unit dan lama nyala per hari) pada **Bagian 2 atau 3** di panel menu kiri.")
             else:
                 st.session_state["sudah_hitung"] = True
                 st.rerun()
@@ -1108,7 +1260,6 @@ else:
             st.rerun()
         st.stop()
 
-    # Gabungkan Konfigurasi & Latih Model AI
     PERANGKAT_UMUM = {
         pilihan_kulkas: {"watt": watt_kulkas, "normal_jam": 24.0, "std_jam": 1.5, "is_custom": False},
         pilihan_ac: {"watt": watt_ac, "normal_jam": 7.5, "std_jam": 1.2, "is_custom": False},
@@ -1160,7 +1311,6 @@ else:
 
     is_boros = (status_pred == -1)
 
-    # Perhitungan Energi Presisi, Diagnosis & Solusi
     DETAIL_DIAGNOSIS = {
         pilihan_kulkas: {
             "penyebab": "Pintu kulkas terlalu sering dibuka-tutup, karet pintu mulai renggang, atau makanan panas langsung dimasukkan sehingga mesin pendingin bekerja terus.",
@@ -1358,7 +1508,6 @@ else:
     total_kwh_bulan = total_kwh_hari * 30.0
     potensi_hemat_tahun = potensi_hemat_rp_total * 12.0
 
-    # Banner Animasi Smart Grid
     render_animasi_dashboard(is_boros, indeks_wajar, total_kwh_hari, total_watt_terpasang, batas_va, pilihan_golongan, TARIF_PLN)
 
     if total_watt_terpasang > batas_va:
@@ -1381,7 +1530,6 @@ else:
     rasio_default_bersih = ((100000.0 - 2500.0) * 0.92) / 100000.0
     estimasi_belanja_awal = prediksi_tagihan_murni / rasio_default_bersih
 
-    # 4 Kartu Ringkasan Angka Utama
     render_html(f"""
     <div class="kpi-grid">
         <div class="kpi-card">
@@ -1419,16 +1567,12 @@ else:
     </div>
     """)
 
-    # Navigasi Tab Modern
     tab_ringkasan, tab_grafik, tab_tabel = st.tabs([
         "⚡ Simulasi Token, Anggaran & Solusi Hemat",
         "📊 Grafik Analisis & Tren Biaya",
         "📋 Rincian Per Alat & Unduh Laporan"
     ])
 
-    # ------------------------------------------
-    # TAB 1: TOKEN PRABAYAR, ANGGARAN & DIAGNOSIS HEMAT
-    # ------------------------------------------
     with tab_ringkasan:
         col_token, col_budget = st.columns(2)
 
@@ -1513,7 +1657,6 @@ else:
                 </div>
                 """)
 
-        # Panel Diagnosis Pemborosan atau Tips Hemat
         if is_boros or len(diagnosis_boros_list) > 0:
             st.markdown("#### 🚨 Daftar Pemakaian Berlebih (Boros) & Cara Mengatasinya")
 
@@ -1547,9 +1690,6 @@ else:
             </div>
             """)
 
-    # ------------------------------------------
-    # TAB 2: GRAFIK ANALISIS TEMA GELAP MODERN
-    # ------------------------------------------
     with tab_grafik:
         fig1, ax1 = plt.subplots(figsize=(10.5, 3.6))
         fig1.patch.set_facecolor("#0f172a")
@@ -1691,9 +1831,6 @@ else:
         </div>
         """)
 
-    # ------------------------------------------
-    # TAB 3: TABEL RINCIAN & UNDUH EXCEL / CSV
-    # ------------------------------------------
     with tab_tabel:
         st.markdown("#### 📋 Rincian Perhitungan Daya, Biaya & Porsi Beban Tiap Alat")
         st.dataframe(
@@ -1758,7 +1895,6 @@ else:
         </div>
         """)
 
-    # Kotak Lipat Rumus Teknis & Akademik
     with st.expander("🔬 Penjelasan Teknis, Rumus Fisika & Model Kecerdasan Buatan (Untuk Presentasi / Akademik)"):
         st.markdown("""
         **1. Rumus Perhitungan Energi Listrik (kWh) dan Biaya PLN**
