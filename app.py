@@ -1,5 +1,6 @@
 import base64
 import os
+import time
 import streamlit as st
 import streamlit.components.v1 as components
 import numpy as np
@@ -25,11 +26,44 @@ def render_html(raw_html: str):
 
 
 def scroll_ke_atas():
-    """Menggulir layar otomatis ke bagian paling atas saat berpindah tampilan."""
+    """Memaksa layar menggulir ke paling atas pada wadah scroll Streamlit (HP & Laptop)."""
+    uid = int(time.time() * 1000)
     components.html(
-        """
+        f"""
         <script>
-            window.parent.scrollTo({top: 0, behavior: 'smooth'});
+            // Trigger ID: {uid}
+            function paksaScrollAtas() {{
+                try {{
+                    window.parent.scrollTo({{top: 0, left: 0, behavior: 'instant'}});
+                    const doc = window.parent.document;
+                    if (doc.documentElement) doc.documentElement.scrollTop = 0;
+                    if (doc.body) doc.body.scrollTop = 0;
+
+                    const wadahScroll = [
+                        'section.main',
+                        'div[data-testid="stAppViewContainer"]',
+                        'div[data-testid="stMain"]',
+                        'div[data-testid="stMainBlockContainer"]',
+                        '.main'
+                    ];
+                    wadahScroll.forEach(sel => {{
+                        const el = doc.querySelector(sel);
+                        if (el) {{
+                            el.scrollTop = 0;
+                            el.scrollTo({{top: 0, left: 0, behavior: 'instant'}});
+                        }}
+                    }});
+
+                    const jangkarAtas = doc.getElementById('paling-atas-halaman');
+                    if (jangkarAtas) {{
+                        jangkarAtas.scrollIntoView({{behavior: 'instant', block: 'start'}});
+                    }}
+                }} catch (e) {{}}
+            }}
+            paksaScrollAtas();
+            setTimeout(paksaScrollAtas, 60);
+            setTimeout(paksaScrollAtas, 180);
+            setTimeout(paksaScrollAtas, 400);
         </script>
         """,
         height=0,
@@ -313,9 +347,9 @@ def cb_terapkan_preset(jenis: str):
         data["unit_magicom"] = 1
         data["masak_magicom"] = 1
         data["warm_magicom"] = 8.0
-        data["unit_0"] = 2  # Lampu LED
+        data["unit_0"] = 2
         data["jam_0"] = 7.0
-        data["unit_1"] = 1  # Kipas Angin
+        data["unit_1"] = 1
         data["jam_1"] = 8.0
         data["nama_c1"] = "Laptop Kerja / Kuliah"
         data["watt_c1"] = 65
@@ -337,11 +371,11 @@ def cb_terapkan_preset(jenis: str):
         data["warm_magicom"] = 12.0
         data["unit_cuci"] = 1
         data["jam_cuci_minggu"] = 3.0
-        data["unit_0"] = 6  # Lampu LED
+        data["unit_0"] = 6
         data["jam_0"] = 9.0
-        data["unit_2"] = 1  # TV LED
+        data["unit_2"] = 1
         data["jam_2"] = 4.0
-        data["unit_3"] = 1  # Sanyo
+        data["unit_3"] = 1
         data["jam_3"] = 1.5
     elif jenis == "boros":
         data["pilihan_golongan"] = "1300 VA (Rumah Tangga - Rp 1.444,70/kWh)"
@@ -353,22 +387,22 @@ def cb_terapkan_preset(jenis: str):
         data["jam_kulkas"] = 24.0
         data["pilihan_ac"] = "AC 1 PK (850 Watt)"
         data["unit_ac"] = 1
-        data["jam_ac"] = 16.0  # Boros
+        data["jam_ac"] = 16.0
         data["unit_magicom"] = 1
-        data["masak_magicom"] = 3  # Boros
+        data["masak_magicom"] = 3
         data["warm_magicom"] = 20.0
         data["unit_cuci"] = 1
-        data["jam_cuci_minggu"] = 9.0  # Boros
-        data["unit_0"] = 10  # Lampu LED
-        data["jam_0"] = 18.0  # Boros
-        data["unit_1"] = 2  # Kipas
+        data["jam_cuci_minggu"] = 9.0
+        data["unit_0"] = 10
+        data["jam_0"] = 18.0
+        data["unit_1"] = 2
         data["jam_1"] = 12.0
-        data["unit_2"] = 1  # TV
+        data["unit_2"] = 1
         data["jam_2"] = 10.0
-        data["unit_3"] = 1  # Sanyo
-        data["jam_3"] = 3.5  # Boros
-        data["unit_4"] = 1  # Water Heater
-        data["jam_4"] = 2.5  # Boros
+        data["unit_3"] = 1
+        data["jam_3"] = 3.5
+        data["unit_4"] = 1
+        data["jam_4"] = 2.5
 
     for k, v in data.items():
         st.session_state[k] = v
@@ -377,16 +411,13 @@ def cb_terapkan_preset(jenis: str):
 
 inisialisasi_state()
 
-if st.session_state["perlu_scroll_atas"]:
-    scroll_ke_atas()
-    st.session_state["perlu_scroll_atas"] = False
-
 T = TEMAS[st.session_state["tema_aktif"]]
 
 # ==========================================
 # GLOBAL CSS DINAMIS SESUAI TEMA AKTIF
 # ==========================================
 render_html(f"""
+<div id="paling-atas-halaman" style="position:relative; top:-85px; height:1px;"></div>
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -509,7 +540,6 @@ render_html(f"""
         color: {T['accent']} !important;
     }}
 
-    /* Tag Multiselect Chip */
     span[data-baseweb="tag"] {{
         background: {T['btn_grad']} !important;
         color: #ffffff !important;
@@ -565,7 +595,6 @@ render_html(f"""
         color: {T['text_main']} !important;
     }}
 
-    /* Header Utama */
     .main-app-header {{
         display: flex;
         flex-wrap: wrap;
@@ -607,7 +636,6 @@ render_html(f"""
         animation: dotPulse 1.6s ease-in-out infinite;
     }}
 
-    /* Banner Petunjuk & Header Form */
     .input-intro-banner {{
         background: {T['card_bg']};
         border: 1px solid {T['border']};
@@ -667,7 +695,6 @@ render_html(f"""
         border-radius: 999px;
     }}
 
-    /* Bilah Estimasi Sementara (Sticky Bottom Bar di Layar HP) */
     .sticky-preview-bar {{
         position: fixed;
         bottom: 10px;
@@ -688,7 +715,6 @@ render_html(f"""
         box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42);
     }}
 
-    /* Kotak Intinya Begini */
     .summary-tldr-box {{
         background: {T['card_bg']};
         border: 1.5px solid {T['accent']};
@@ -711,7 +737,6 @@ render_html(f"""
         margin-bottom: 5px;
     }}
 
-    /* Kartu KPI */
     .kpi-grid {{
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -867,7 +892,6 @@ render_html(f"""
         color: {T['text_sub']};
     }}
 
-    /* Footer Hak Cipta, Logo USM & Kontak WhatsApp */
     .footer-card {{
         margin-top: 26px;
         padding: 20px 24px;
@@ -991,12 +1015,10 @@ def hitung_skor_fuzzy_efisiensi(rasio_kwh_normal: float, rasio_mcb: float, jumla
     Sistem Inferensi Logika Fuzzy (Mamdani-Sugeno terpadu) untuk menghasilkan
     Skor Efisiensi Rumah (0-100) beserta lencana gamifikasi.
     """
-    # Fuzzifikasi Rasio Konsumsi Aktual terhadap Batas Wajar (1.0 = normal)
     mu_hemat = float(np.clip((1.15 - rasio_kwh_normal) / 0.35, 0.0, 1.0))
     mu_sedang = float(np.clip(1.0 - abs(rasio_kwh_normal - 1.15) / 0.35, 0.0, 1.0))
     mu_boros = float(np.clip((rasio_kwh_normal - 1.15) / 0.55, 0.0, 1.0))
 
-    # Penalti ringan jika beban puncak melebihi MCB atau ada alat ekstrem
     penalti_mcb = 12.0 if rasio_mcb > 1.0 else (4.0 if rasio_mcb > 0.85 else 0.0)
     penalti_alat = min(20.0, jumlah_alat_boros * 6.5)
 
@@ -1216,11 +1238,10 @@ if not st.session_state["sudah_hitung"]:
         📋 <b>Cara Pakai Cepat (3 Langkah):</b><br>
         1️⃣ Pilih <b>Golongan Daya PLN</b> rumah Anda (atau tekan <b>Tombol Contoh</b> di bawah untuk demo cepat).<br>
         2️⃣ Centang <b>Peralatan yang Ada di Rumah</b> agar layar tetap ringkas.<br>
-        3️⃣ Isi jumlah unit &amp; jam nyala, lalu tekan tombol <b>Hitung &amp; Lihat Hasil</b> di bawah.
+        3️⃣ Isi jumlah unit &amp; jam nyala, lalu tekan tombol <b>Hitung &amp; Analisa Sekarang</b> di bawah.
     </div>
     """)
 
-    # Tombol Preset Demo 1-Klik & Reset
     cp1, cp2, cp3, cp4 = st.columns(4)
     with cp1:
         st.button("🏠 Contoh Kost 900VA", on_click=cb_terapkan_preset, args=("kost",), use_container_width=True)
@@ -1231,7 +1252,6 @@ if not st.session_state["sudah_hitung"]:
     with cp4:
         st.button("🔄 Kosongkan (0)", on_click=cb_reset_semua, use_container_width=True)
 
-    # --- BAGIAN 1: DAYA LISTRIK & TARGET ANGGARAN ---
     render_html("""
     <div class="form-section-header">
         <div class="form-section-title">1. Daya Listrik &amp; Target Anggaran</div>
@@ -1263,7 +1283,6 @@ if not st.session_state["sudah_hitung"]:
         key="pilihan_standby"
     )
 
-    # --- BAGIAN 2: FILTER PILIHAN PERALATAN ELEKTRONIK ---
     render_html("""
     <div class="form-section-header">
         <div class="form-section-title">2. Pilih Peralatan Elektronik di Rumah Anda</div>
@@ -1283,7 +1302,6 @@ if not st.session_state["sudah_hitung"]:
         st.markdown("<div style='height: 27px;'></div>", unsafe_allow_html=True)
         st.button("✅ Pilih Semua", on_click=cb_pilih_semua_alat, use_container_width=True)
 
-    # Render kartu input HANYA untuk alat yang dicentang
     if "❄️ Kulkas" in alat_terpilih:
         watt_kulkas_prev = OPSI_KULKAS[st.session_state["pilihan_kulkas"]]
         render_html(f"""
@@ -1448,7 +1466,7 @@ if not st.session_state["sudah_hitung"]:
     st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
 
     golongan_ok = (pilihan_golongan != PLACEHOLDER_PLN)
-    if st.button("🚀 Hitung & Lihat Hasil Analisis Sekarang", type="primary", use_container_width=True):
+    if st.button("🚀 Hitung & Analisa Sekarang", type="primary", use_container_width=True):
         if not golongan_ok:
             st.error("⚠️ Silakan pilih **Golongan Daya Listrik (PLN)** terlebih dahulu pada **Bagian 1** di atas.")
         elif kwh_prev <= 0:
@@ -1459,7 +1477,6 @@ if not st.session_state["sudah_hitung"]:
             st.session_state["perlu_scroll_atas"] = True
             st.rerun()
 
-    # Bilah Estimasi Sementara Melayang di Bawah Layar HP
     if kwh_prev > 0:
         render_html(f"""
         <div class="sticky-preview-bar">
@@ -1790,10 +1807,8 @@ else:
     rasio_mcb = total_watt_terpasang / max(batas_va, 1)
     skor_fuzzy, lencana_fuzzy, warna_lencana = hitung_skor_fuzzy_efisiensi(rasio_kwh_norm, rasio_mcb, len(diagnosis_boros_list))
 
-    # Hero Banner
     render_animasi_dashboard(is_boros, skor_fuzzy, lencana_fuzzy, warna_lencana, total_kwh_hari, total_watt_terpasang, batas_va, pilihan_golongan, TARIF_PLN)
 
-    # Kotak "INTINYA BEGINI..." Agar Pengguna Awam Langsung Mudeng
     rasio_default_bersih = ((100000.0 - 2500.0) * 0.92) / 100000.0
     estimasi_belanja_awal = prediksi_tagihan_murni / rasio_default_bersih
 
@@ -1963,7 +1978,6 @@ else:
                 </div>
                 """)
 
-        # SIMULATOR INTERAKTIF "WHAT-IF" & SAKLAR MCB ANTI-JEGLEK
         col_whatif, col_mcb = st.columns(2)
 
         with col_whatif:
@@ -2025,7 +2039,6 @@ else:
                 </div>
                 """)
 
-        # DAFTAR DIAGNOSIS BOROS & SOLUSI
         if is_boros or len(diagnosis_boros_list) > 0:
             st.markdown("#### 🚨 Daftar Pemakaian Berlebih (Boros) & Cara Mengatasinya")
             for item in diagnosis_boros_list:
@@ -2234,7 +2247,6 @@ else:
             mime="text/csv"
         )
 
-    # BAGIAN TEKNIS / AKADEMIK (OTOMATIS TERBUKA JIKA MODE TEKNIS / DOSEN DIPILIH)
     if mode_dosen:
         with st.expander("🎓 Dokumentasi Akademik & Arsitektur Kecerdasan Buatan (Presentasi Dosen)", expanded=True):
             st.markdown(f"""
@@ -2280,3 +2292,10 @@ render_html(f"""
     </div>
 </div>
 """)
+
+# ==========================================
+# EKSEKUSI AUTO-SCROLL KE PALING ATAS SETELAH HALAMAN SELESAI DIMUAT
+# ==========================================
+if st.session_state.get("perlu_scroll_atas", False):
+    scroll_ke_atas()
+    st.session_state["perlu_scroll_atas"] = False
